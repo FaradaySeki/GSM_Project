@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
+SoftwareSerial Serial800l(10,11);
+
 String SMSrecebida; // Variável global que recebe a SMS recebida pelo modulo.
 String numero;      // Variável global que recebe o NUMERO de quem enviou o SMS.
 String MSG;         // Variável global que recebe a MENSAGEM de quem enviou o SMS.
@@ -20,9 +22,8 @@ String Retorna_data(String SMS);                               // Recebe a strin
 void setup() // Configurações Iniciais
 {
   Serial.begin(9600); // Inicializa Porta serial nativa do Arduino
-  while (!Serial)
-    ; // Aguarda comunicação serial ser estabelecida
-  //Serial800l.begin(9600);  //  Inicializa a comunicação serial "virtual"
+  while (!Serial); // Aguarda comunicação serial ser estabelecida
+  Serial800l.begin(9600);  //  Inicializa a comunicação serial "virtual"
   pinMode(3, OUTPUT); // Pino 3 configurado como SAÍDA digital
 }
 
