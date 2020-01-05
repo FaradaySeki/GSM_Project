@@ -35,9 +35,10 @@ void loop() // Loop eterno
     MSG = Retorna_msg(SMSrecebida);
     data = Retorna_data(SMSrecebida);
 
+    //Serial.println(SMSrecebida+" "+numero+" "+" "+MSG+" "+data);
     Tornar_Legivel(MSG);
     delay(10);
-    if ((MSG == "RESETAR" || MSG == "LIMPAR") && (numero == "992647785" || numero == "953884989"))
+    if ((MSG == "RESETAR" || MSG == "LIMPAR") && (numero == "992647785" || numero == "953884989" || numero == "992624445"))
     {
       if (MSG == "RESETAR")
       {
@@ -53,11 +54,9 @@ void loop() // Loop eterno
       Numero_NaoCadastrado();
     }
   }
-  //else// "SE PRECISAR DEBUGAR O MODULO COM COMANDOS AT HABILITAR ESTE ELSE !"
-  //{
   //  Comandos_AT();
-  // }
 }
+
 void Numero_NaoCadastrado()
 {
   String mensagem = "O numero: " + numero + " TENTOU resetar o modem NET AEROPORTO em: " + data;
@@ -93,7 +92,7 @@ void enviarSMS(String telefone, String data, String mensagem)
 }
 String Retorna_data(String SMS)
 {
-  String dado = SMS.substring(27, 44); // separa somente a DATA da informação recebida pelo modulo
+  String dado = SMS.substring(25, 44); // separa somente a DATA da informação recebida pelo modulo
   dado.trim();
 
   String ano = dado.substring(0, 2); // separa o ANO
@@ -106,7 +105,7 @@ String Retorna_data(String SMS)
 }
 String Retorna_numero(String SMS)
 {
-  return SMS.substring(12, 21); // retorna o numero que esta contido na posição 12 até a 20 da string SMS.
+  return SMS.substring(10, 19); // retorna o numero que esta contido na posição 12 até a 20 da string SMS.
 }
 void Tornar_Legivel(String dado)
 {
@@ -116,9 +115,9 @@ void Tornar_Legivel(String dado)
 }
 bool SMSread()
 {
-  if (Serial.available() > 0)
+  if (Serial800l.available() > 0)
   {
-    SMSrecebida = Serial.readString();
+    SMSrecebida = Serial800l.readString();
     SMSrecebida.trim();
     delay(10);
     //Serial.println(SMSrecebida); HABILITAR SE QUISER VER A SMS FULL RECEBIDA
@@ -131,7 +130,7 @@ bool SMSread()
 }
 String Retorna_msg(String SMS)
 {
-  return SMS.substring(49); // Apartir das posição 49 tudo é mensagem.
+  return SMS.substring(48); // Apartir das posição 49 tudo é mensagem.
 }
 void Comandos_AT()
 {
@@ -140,20 +139,13 @@ void Comandos_AT()
     String dado = Serial.readString(); // armazena esse dado
     dado.trim();                       // retira os espaços desncessarios
     delay(30);
-    Serial.println(dado); // escreve o dado no modulo
+    Serial800l.println(dado); // escreve o dado no modulo
     delay(30);
-    if (Serial.available() > 0) // se o modulo responder
+    if (Serial800l.available() > 0) // se o modulo responder
     {
       dado = Serial.readString(); // armazeno a resposta
       dado.trim();
       Serial.println(dado); // escrevo no monitor serial
     }
-  }
-  else if (Serial.available()) // testar a SMS recebida
-  {
-    SMSrecebida = Serial.readString();
-    SMSrecebida.trim();
-    delay(10);
-    Serial.println(SMSrecebida);
   }
 }
