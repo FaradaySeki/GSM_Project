@@ -1,12 +1,13 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
-SoftwareSerial Serial800l(10,11);
+SoftwareSerial Serial800l(10, 11);
 
 String SMSrecebida; // Variável global que recebe a SMS recebida pelo modulo.
 String numero;      // Variável global que recebe o NUMERO de quem enviou o SMS.
 String MSG;         // Variável global que recebe a MENSAGEM de quem enviou o SMS.
 String data;        // Variável global que recebe a DATA de quem enviou o SMS.
+String modem = "NET Cachoeirinha";
 
 bool SMSread();                                                // Retorna True se chegou algum dado pela Serial ou seja Chegou SMS no modulo
 void Comandos_AT();                                            // Permite comunicação Serial do Arduino com o Modulo atraves do Monitor Serial
@@ -19,12 +20,13 @@ String Retorna_numero(String SMS);                             // Recebe a strin
 String Retorna_msg(String SMS);                                // Recebe a string completa do modulo e retorna somente o MENSAGEM de quem enviou a SMS.
 String Retorna_data(String SMS);                               // Recebe a string completa do modulo e retorna somente a DATA de quem enviou a SMS.
 
-void setup() // Configurações Iniciais
+void setup()
 {
   Serial.begin(9600); // Inicializa Porta serial nativa do Arduino
-  while (!Serial); // Aguarda comunicação serial ser estabelecida
-  Serial800l.begin(9600);  //  Inicializa a comunicação serial "virtual"
-  pinMode(3, OUTPUT); // Pino 3 configurado como SAÍDA digital
+  while (!Serial)
+    ;                     // Aguarda comunicação serial ser estabelecida
+  Serial800l.begin(9600); //  Inicializa a comunicação serial "virtual"
+  pinMode(3, OUTPUT);     // Pino 3 configurado como SAÍDA digital
 }
 
 void loop() // Loop eterno
@@ -35,7 +37,6 @@ void loop() // Loop eterno
     MSG = Retorna_msg(SMSrecebida);
     data = Retorna_data(SMSrecebida);
 
-    //Serial.println(SMSrecebida+" "+numero+" "+" "+MSG+" "+data);
     Tornar_Legivel(MSG);
     delay(10);
     if ((MSG == "RESETAR" || MSG == "LIMPAR") && (numero == "992647785" || numero == "953884989" || numero == "992624445"))
@@ -53,13 +54,18 @@ void loop() // Loop eterno
     {
       Numero_NaoCadastrado();
     }
+    else if (numero == "992647785" || numero == "953884989" || numero == "992624445")
+    {
+        String mensagem = "Somente entendo `resetar` ou `limpar`";
+        enviarSMS(numero, data, mensagem);
+    }
   }
-  //  Comandos_AT();
+  // Comandos_AT();
 }
 
 void Numero_NaoCadastrado()
 {
-  String mensagem = "O numero: " + numero + " TENTOU resetar o modem NET AEROPORTO em: " + data;
+  String mensagem = "O numero: " + numero + " TENTOU resetar o modem" + modem + "em: " + data;
   enviarSMS("992647785", data, mensagem);
   delay(10000);
   mensagem = "Voce nao tem permissao para me resetar !";
@@ -75,7 +81,7 @@ void Limpar_CHIP()
 }
 void Resetar_modem()
 {
-  String mensagem = "O numero: " + numero + " resetou o modem NET AEROPORTO em: " + data;
+  String mensagem = "O numero: " + numero + " resetou o modem " + modem + " em: " + data;
   digitalWrite(3, !digitalRead(3));
   delay(10000);
   digitalWrite(3, !digitalRead(3));
@@ -84,11 +90,14 @@ void Resetar_modem()
 }
 void enviarSMS(String telefone, String data, String mensagem)
 {
-  Serial.print("AT+CMGS=\"" + telefone + "\"\n"); // comando necessario para enviar SMS
-  Serial.println(mensagem);                       // Após \n escrevemos a mensagem
-  Serial.print((char)26);                         // 26 TABELA ASCII = CTRL+Z // control+z indica o fim.
+  Serial800l.println("AT+CMGS=\"" + telefone + "\""); // comando necessario para enviar SMS
+  Serial800l.print(mensagem);                         // Após \n escrevemos a mensagem
   delay(10);
-  Serial.print((char)27); // ESQ TABELA ASCII
+  Serial800l.print((char)26); // 26 TABELA ASCII = CTRL+Z // control+z indica o fim.
+                              // Serial.println("AT+CMGS=\"" + telefone + "\"");
+                              // Serial.println(mensagem);                       // Após \n escrevemos a mensagem
+                              // Serial.print((char)26);
+  //Serial800l.print((char)27); // ESQ TABELA ASCII
 }
 String Retorna_data(String SMS)
 {
@@ -100,6 +109,7 @@ String Retorna_data(String SMS)
   String mes = dado.substring(3, 5); // separa o MES
 
   dado.replace(ano + "/" + mes + "/" + dia, dia + "/" + mes + "/" + ano); // formata do formato ANO/MES/DIA PARA DIA/MES/ANO
+  dado.replace("-1", "");
 
   return dado; // retorna a data formatada
 }
@@ -119,6 +129,7 @@ bool SMSread()
   {
     SMSrecebida = Serial800l.readString();
     SMSrecebida.trim();
+
     delay(10);
     //Serial.println(SMSrecebida); HABILITAR SE QUISER VER A SMS FULL RECEBIDA
     return true;
@@ -134,18 +145,25 @@ String Retorna_msg(String SMS)
 }
 void Comandos_AT()
 {
-  if (Serial.available()) // Se eu enviei dado pelo monitor Serial
+  if (Serial.available() > 0) // Se eu enviei dado pelo monitor Serial
   {
     String dado = Serial.readString(); // armazena esse dado
     dado.trim();                       // retira os espaços desncessarios
     delay(30);
+    Serial.println(dado);
     Serial800l.println(dado); // escreve o dado no modulo
     delay(30);
     if (Serial800l.available() > 0) // se o modulo responder
     {
-      dado = Serial.readString(); // armazeno a resposta
+      dado = Serial800l.readString(); // armazeno a resposta
       dado.trim();
       Serial.println(dado); // escrevo no monitor serial
     }
+  }
+  if (Serial800l.available() > 0) // se o modulo responder
+  {
+    String dado = Serial800l.readString(); // armazeno a resposta
+    dado.trim();
+    Serial.println(dado); // escrevo no monitor serial
   }
 }
