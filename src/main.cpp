@@ -39,9 +39,9 @@ void loop() // Loop eterno
 
     Tornar_Legivel(MSG);
     delay(10);
-    if ((MSG == "RESETAR" || MSG == "LIMPAR") && (numero == "992647785" || numero == "953884989" || numero == "992624445"))
+    if ((MSG == "RESETAR" || MSG == "LIMPAR" || MSG== "RESET") && (numero == "992647785" || numero == "953884989" || numero == "992624445"))
     {
-      if (MSG == "RESETAR")
+      if (MSG == "RESETAR" || MSG== "RESET")
       {
         Resetar_modem();
       }
